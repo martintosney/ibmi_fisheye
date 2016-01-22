@@ -1,0 +1,397 @@
+syntaxdef rpgle {
+
+# Fixed line comments
+/^.{6}\*.*$/m : {
+    region {
+         type=comment;
+         index=prose;
+         findlinks=true;
+    }
+}
+
+# preprocessor line
+/^(.{6})?\s*(\/(free|end-free|title|eject|space|copy|include|define|undefine|\
+if|elseif|else|endif|eof|exec|end-exec).*)$/im : {
+       region ${2} {
+         type=preprocessor;
+       }
+    }
+
+# H-specs
+    /^.{5}(H)(.*)$/im : {
+        freeformat(${2});
+        region ${1} {
+            type=keyword;
+        }
+    }
+
+# F-specs
+    /^.{5}(F)([^\*].{9})(.{6})(.{5}).(.{5})(.{0,9}).?(.{0,37})(.*)$/im : {
+        freeformat(${7});
+        region ${1} {
+            type=keyword;
+        }
+        region ${3} {
+            type=keyword;
+        }
+        region ${4} {
+            type=numeric;
+        }
+        region ${5} {
+            type=numeric;
+        }
+        region ${6} {
+            type=keyword;
+        }
+        region ${8} {
+           type=comment;
+        }
+    }
+
+# D-specs (continuation)
+    /^.{5}(D).*\.\.\./im : {
+        region ${1} {
+            type=keyword;
+        }
+    }
+
+# D-specs (normal)
+    /^.{5}(D).{0,15}(.{0,4})(.{0,14})(.?)(.{0,2})(.{0,37})(.*)$/im : {
+        freeformat(${6});
+        region ${1} {
+            type=keyword;
+        }
+        region ${2} {
+            type=keyword;
+        }
+        region ${3} {
+            type=numeric;
+        }
+        region ${4} {
+            type=keyword;
+        }
+        region ${5} {
+            type=numeric;
+        }
+        region ${7} {
+            type=comment;
+        }
+    }
+
+# I-specs
+    /^.{5}(I).{0,10}(.{0,4}).{0,10}(.{0,6})(.{0,12}).{0,14}(.{0,12}).{0,10}(.{0,12})(.*)$/im : {
+        region ${1} {
+            type=keyword;
+        }
+        region ${2} {
+            type=keyword;
+        }
+        region ${3} {
+            type=keyword;
+        }
+        region ${4} {
+            type=numeric;
+        }
+        region ${5} {
+            type=numeric;
+        }
+        region ${6} {
+            type=numeric;
+        }
+        region ${7} {
+            type=comment;
+        }
+    }
+
+# C-specs (SQL)
+    /^.{5}(C\+)(.{0,73})(.*)$/im : {
+        embeddedsql(${2});
+        region ${1} {
+            type=keyword;
+        }
+        region ${3} {
+            type=comment;
+        }
+}
+
+# C-specs (extended)
+    /^.{5}(C)(.{0,5}).{0,14}\
+(CALLP.{0,5}|DO(U|W).{0,7}|ELSEIF.{0,4}|EVAL.{0,6}|FOR.{0,7}|\
+IF[\s\($].{0,7}|ON-ERROR.{0,2}|RETURN.{0,4}|SORTA.{0,5}|\
+WHEN.{0,6}|XML-.{0,6}|\s{29})\
+(.{0,46})(.*)$/im : {
+        freeformat(${5});
+        region ${1} {
+            type=keyword;
+        }
+        region ${2} {
+            type=numeric;
+        }
+        region ${3} {
+            type=keyword;
+        }
+        region ${6} {
+            type=comment;
+        }
+    }
+
+# C-specs (old-style)
+    /^.{5}(C)(.{0,5})(.{0,14})(.{0,10})(.{0,14})(.{0,14})(.{0,13}).{0,4}(.*)$/im : {
+        freeformat(${3});
+        freeformat(${5});
+        freeformat(${6});
+        region ${1} {
+            type=keyword;
+        }
+        region ${2} {
+            type=numeric;
+        }
+        region ${4} {
+            type=keyword;
+        }
+        region ${7} {
+            type=numeric;
+        }
+        region ${8} {
+            type=comment;
+        }
+    }
+
+# O-specs
+    /^.{5}(O).{0,10}(.{0,4})(.{0,9})(.{0,51})(.*)$/im : {
+        freeformat(${4});
+        region ${1} {
+            type=keyword;
+        }
+        region ${2} {
+            type=keyword;
+        }
+        region ${3} {
+            type=numeric;
+        }
+        region ${5} {
+            type=comment;
+        }
+    }
+
+# P-specs (continuation)
+    /^.{5}(P).*\.\.\./im : {
+        region ${1} {
+            type=keyword;
+        }
+    }
+
+# P-specs (normal)
+    /^.{5}(P).{0,17}(.).{0,19}(.*)$/im : {
+        region ${1} {
+            type=keyword;
+        }
+        region ${2} {
+            type=keyword;
+        }
+        region ${3} {
+            type=comment;
+        }
+    }
+
+    context freeformat {
+
+        /\b[\d\.]+\b/ : {
+            region {
+                type=numeric;
+            }
+        }
+
+        /'/ : {
+            context {
+                /''/: ;
+                "'" : exit;
+            }
+            region ${ALL} {
+                type=string;
+            }
+        }
+
+        /\*(IN..|ON|OFF|BLANKS|BLANK|ZERO|ZEROS|START|END|LOVAL|HIVAL|ENTRY)\b/i : {
+           region {
+             type=symbol;
+             index=word;
+           }
+        }
+    }
+
+# Free format comment
+/\/\/.*$/m : {
+      region {
+         type=comment;
+         index=prose;
+         findlinks=true;
+      }
+   }
+
+# Declarations
+/CTL-OPT|(DCL|END)-(C|DS|F|PARM|PI|PR(OC)?|S(UBF)?)/i : {
+      region {
+         type=keyword;
+      }
+   }
+
+# keywords
+/\b(ACQ|AND|BEGSR|CALLP|CHAIN|CLEAR|COMMIT|CLOSE|DEALLOC|DELETE|\
+DO[UW]|DSPLY|DUMP|ELSE(IF)?|END(DO|FOR|IF|MON|SL|SR)|EVALR?|EXCEPT|EXFMT|EXSR|\
+FEOD|FOR(CE)?|IF|IN|ITER|LEAVE(SR)?|MONITOR|NEXT|NOT|ON-ERROR|OPEN|\
+OR|OTHER|OUT|POST|READ(C|E|P|PE)?|REL|RESET|RETURN|ROLBK|\
+SELECT|SET(GT|LL)|SORTA|TEST|UNLOCK|UPDATE|WHEN|WRITE)\b/i : {
+       region {
+         type=keyword;
+         index=word;
+       }
+    }
+
+# Special values
+/\*(IN..|ON|OFF|BLANKS|BLANK|ZERO|ZEROS|START|END|LOVAL|HIVAL|ENTRY)\b/i : {
+       region {
+         type=symbol;
+         index=word;
+       }
+    }
+
+# Built-in functions
+/%\w+/ : {
+       region {
+         type=symbol;
+         index=word;
+       }
+    }
+
+# Numbers
+/\b[\d\.]+\b/ : {
+        region {
+            type=numeric;
+        }
+    }
+
+# Strings
+/'/ : {
+        context {
+            /''/: ;
+            "'" : exit;
+        }
+        region ${ALL} {
+            type=string;
+        }
+    }
+
+# Embedded SQL
+/(EXEC\s+SQL\s)([\s\S]*?);/mi : {
+        embeddedsql(${2});
+        region ${1} {
+            type=keyword;
+        }
+    }
+
+# Shamelessly stolen from sql.def
+    context embeddedsql {
+    
+/\s+/m : ;
+    
+    
+/(as|alter|ascii|an(d|si_nulls)|b(egin|inary|ool|yte)|c(ase|har|on(st|tinue)|reate)\
+|d(atetime|ec(lare|imal)|efault|elete|o(|uble)|rop)|e(lse|nd|ncryption|x(ecute|ists))|f(alse|loat|or|rom|u(ll|nction))|g(o|oto|r(ant|oup by))\
+|having|i(f|n|n(dex|ner|sert)|nt|nto|s)|join|key|l(eft|ike|ong)|money|n(ative|ew|ocount|olock|ot|ull)|o(ff|n|r(der by)?)\
+|pr(i(mary|nt)|ocedure)|quoted_identifier|r(eturn|ight|owlock)|s(et|elect|(mall(datetime|int|money))|ysname)\
+|t(able|hen|inyint|o|op|rue)|upd(ate|lock)|u(niqueidentifier|se)|v(alues|archar|oid)|w(ith|he(n|re)|hile))\b/i : {
+          region {
+            type=keyword;
+            index=word;
+          }
+    }
+    
+/[\p{L}_\$][\p{L}\p{N}_\$]*/ : {
+          region {
+             type=identifier;
+             index=word;
+          }
+      }
+    
+    
+    # string literals
+/"/ : {
+        context {
+            /\\./: ;
+            /$/m : exit;
+            "\"" : exit;
+        }
+        region ${ALL} {
+               type=string;
+        }
+    }
+    
+/'/ : {
+        context {
+            /\\./: ;
+            /$/m : exit;
+            "'" : exit;
+        }
+        region ${ALL} {
+               type=string;
+        }
+    }
+    
+    
+/(0x[0-9a-f]+l?)|([0-9]+(\.[0-9]*)?|\.[0-9]+)(e(\+|-)?[0-9]+)?(f|l|d)?/i : {
+           region {
+              type=numeric;
+           }
+       }
+    
+# Host variables
+/(:\w+)/ : {
+            region {
+                type=symbol;
+            }
+       }
+
+/\/\/.*$/m : {
+          todo(${0});
+          region {
+             type=comment;
+    	     index=prose;
+    	     findlinks=true;
+          }
+       }
+    
+/\-\-.*$/m : {
+          todo(${0});
+          region {
+             type=comment;
+    	     index=prose;
+    	     findlinks=true;
+          }
+       }
+    
+    
+/\/\*(.*?)\*\//s : {
+          todo(${1});
+          region {
+             type=comment;
+             findlinks=true;
+          }
+          region ${1} {
+    	     index=prose;
+          }
+       }
+    
+    context todo {
+       /(?i)todo\s.*/ : {
+         region {
+           type=todo;
+         }
+       }
+ 
+    }
+    
+    }
+
+}
+

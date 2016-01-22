@@ -1,0 +1,47 @@
+
+syntaxdef dds {
+
+# Whitespace
+/\s+/m : ;
+
+# Keywords
+/STRPGMEXP|ENDPGMEXP|EXPORT/i : {
+       region {
+         type=keyword;
+         index=word;
+       }
+}
+
+/\*CURRENT|\*PRV/i : {
+       region {
+         type=symbol;
+         index=word;
+       }
+}
+
+# Comments
+/\/\*.*\*\// : {
+    region {
+         type=comment;
+         index=prose;
+         findlinks=true;
+    }
+}
+
+# string literals
+/\".*\"/ : {
+    region {
+           type=string;
+    }
+}
+
+/(0x[0-9a-f]+l?)|([0-9]+(\.[0-9]*)?|\.[0-9]+)(e(\+|-)?[0-9]+)?(f|l|d)?/i : {
+       region {
+          type=numeric;
+       }
+   }
+
+}
+
+
+

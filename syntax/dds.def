@@ -1,0 +1,65 @@
+
+syntaxdef dds {
+
+# Comments
+    /^.{6}\*.*$/m : {
+        region {
+            type=comment;
+        }
+    }
+
+# A-specs
+    /^.{5}(A)(.{0,10})(.{0,2}).{0,10}(.)?(.{0,5})(.)?(.{0,2})(.)?(.{0,6})(.{0,36})(.*)$/im : {
+        freesection(${10});
+        region ${1} {
+            type=keyword;
+        }
+        region ${2} {
+            type=numeric;
+        }
+        region ${3} {
+            type=keyword;
+        }
+        region ${4} {
+            type=keyword;
+        }
+        region ${5} {
+            type=numeric;
+        }
+        region ${6} {
+            type=keyword;
+        }
+        region ${7} {
+            type=numeric;
+        }
+        region ${8} {
+            type=keyword;
+        }
+        region ${9} {
+            type=numeric;
+        }
+        region ${11} {
+            type=comment;
+        }
+    }
+
+    context freesection {
+
+        /\b[\d\.]+\b/ : {
+            region {
+                type=numeric;
+            }
+        }
+
+        /'/ : {
+            context {
+                /''/: ;
+                "'" : exit;
+            }
+            region ${ALL} {
+                type=string;
+            }
+        }
+    }
+
+}

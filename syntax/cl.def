@@ -1,0 +1,42 @@
+
+syntaxdef dds {
+
+# Whitespace
+#/\s+/m : ;
+
+# Comments
+/\/\*[\s\S]*?\*\//m : {
+    region {
+         type=comment;
+         index=prose;
+         findlinks=true;
+    }
+}
+
+# string literals
+/'/ : {
+    context {
+        /''/: ;
+        "'" : exit;
+    }
+    region ${ALL} {
+           type=string;
+    }
+}
+
+
+/\b[\.\d]+\b/ : {
+       region {
+          type=numeric;
+       }
+   }
+
+# Variables
+/&\w+/ : {
+    region {
+        type=symbol;
+    }
+}
+
+}
+
